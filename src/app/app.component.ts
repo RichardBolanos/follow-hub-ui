@@ -1,12 +1,13 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component }        from '@angular/core';
+import { RouterOutlet }     from '@angular/router';
+import { routeAnimations }  from './core/animations/route-animations';
 
 @Component({
   selector: 'app-root',
-  imports: [],
+  standalone: true,
+  imports: [RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrls: ['./app.component.scss'],
+  animations: [routeAnimations]
 })
-export class AppComponent {
-  title = 'FollowHubUi';
-}
+export class AppComponent {}

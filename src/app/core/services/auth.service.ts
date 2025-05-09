@@ -1,41 +1,56 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { HttpClient }                      from '@angular/common/http';
+import { isPlatformBrowser }               from '@angular/common';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
+  private http       = inject(HttpClient);
+  private platformId = inject(PLATFORM_ID);
 
-  private readonly tokenKey = 'fh_token';
-  private readonly rolesKey = 'fh_roles';
+  loginApi(email: string, password: string) {
+    return this.http.post<{ token: string; roles: string[] }>(
+      '/api/Auth/login',
+      { email, password }
+    );
+  }
 
-  constructor() {}
+  registerApi(email: string, password: string) {
+    return this.http.post<{ token: string; roles: string[] }>(
+      '/api/Auth/register',
+      { email, password }
+    );
+  }
 
-  // Llama esto tras login exitoso
   login(token: string, roles: string[]) {
-    localStorage.setItem(this.tokenKey, token);
-    localStorage.setItem(this.rolesKey, JSON.stringify(roles));
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('roles', JSON.stringify(roles));
+    }
   }
 
-  logout() {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.rolesKey);
+  logout(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('roles');
+    }
   }
 
-  isAuthenticated(): boolean {
-    return !!localStorage.getItem(this.tokenKey);
+  getToken(): string | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    return localStorage.getItem('token');
   }
 
   getRoles(): string[] {
-    const raw = localStorage.getItem(this.rolesKey);
-    return raw ? JSON.parse(raw) : [];
+    if (!isPlatformBrowser(this.platformId)) return [];
+    const stored = localStorage.getItem('roles');
+    return stored ? JSON.parse(stored) : [];
   }
 
-  hasRole(expected: string): boolean {
-    return this.getRoles().includes(expected);
+  hasRole(role: string): boolean {
+    return this.getRoles().includes(role);
   }
 
-  // (Opcional) obtener el token para peticiones HTTP
-  getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+  isAuthenticated(): boolean {
+    return !!this.getToken();
   }
 }

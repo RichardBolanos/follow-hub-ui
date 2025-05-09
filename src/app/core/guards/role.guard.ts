@@ -1,16 +1,16 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
-  const authService = inject(AuthService);
+export const roleGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
   const router = inject(Router);
+  const route = inject(ActivatedRouteSnapshot);
+  const allowed = (route.data['roles'] ?? []) as string[];
 
-  const expectedRole = route.data['role'] as string;
-  if (!authService.hasRole(expectedRole)) {
-    router.navigate(['/forbidden']);
-    return false;
+  if (allowed.some((role) => auth.hasRole(role))) {
+    return true;
   }
 
-  return true;
+  return router.parseUrl('/forbidden');
 };

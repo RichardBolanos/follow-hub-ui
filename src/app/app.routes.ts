@@ -1,11 +1,26 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
-import { roleGuard } from './core/guards/role.guard';
+import { authGuard }   from './core/guards/auth.guard';
+import { roleGuard }   from './core/guards/role.guard';
+import { MainLayoutComponent } from './core/layouts/main-layout.component';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  { path: '',           pathMatch: 'full', redirectTo: 'login' },
+  { path: 'login',
+    loadComponent: () =>
+      import('./auth/login/login.component').then(m => m.LoginComponent)
+  },
+  { path: 'register',
+    loadComponent: () =>
+      import('./auth/register/register.component').then(m => m.RegisterComponent)
+  },
+  { path: 'forbidden',
+    loadComponent: () =>
+      import('./shared/pages/forbidden/forbidden.component').then(m => m.ForbiddenComponent)
+  },
+
   {
     path: '',
+    component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
       {
@@ -15,6 +30,8 @@ export const routes: Routes = [
       },
       {
         path: 'projects',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
         loadChildren: () =>
           import('./features/projects/projects.routes').then(m => m.routes)
       },
@@ -22,28 +39,9 @@ export const routes: Routes = [
         path: 'boards',
         loadChildren: () =>
           import('./features/boards/boards.routes').then(m => m.routes)
-      },
-      {
-        path: 'notifications',
-        loadChildren: () =>
-          import('./features/notifications/notifications.routes').then(m => m.routes)
       }
     ]
   },
-  {
-    path: 'login',
-    loadComponent: () =>
-      import('./auth/login/login.component').then(m => m.LoginComponent)
-  },
-  {
-    path: 'register',
-    loadComponent: () =>
-      import('./auth/register/register.component').then(m => m.RegisterComponent)
-  },
-  {
-    path: 'forbidden',
-    loadComponent: () =>
-      import('./shared/pages/forbidden/forbidden.component').then(m => m.ForbiddenComponent)
-  },
+
   { path: '**', redirectTo: '' }
 ];
