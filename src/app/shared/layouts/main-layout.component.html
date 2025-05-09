@@ -1,26 +1,33 @@
 <div class="flex h-screen">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-gray-900 text-white p-4 hidden md:block">
-      <!-- Aquí va el menú -->
-      <nav>
-        <!-- ejemplo estático -->
-        <a routerLink="/dashboard" class="block py-2 hover:bg-gray-800 rounded px-3">Dashboard</a>
-        <a routerLink="/projects" class="block py-2 hover:bg-gray-800 rounded px-3">Proyectos</a>
-      </nav>
-    </aside>
-  
-    <!-- Contenido principal -->
-    <div class="flex-1 flex flex-col">
-      <!-- Header -->
-      <header class="h-16 bg-white border-b px-6 flex items-center justify-between shadow-sm">
-        <h1 class="text-xl font-bold">FollowHub</h1>
-        <div><!-- Usuario, logout, etc. --></div>
-      </header>
-  
-      <!-- Página -->
-      <main class="flex-1 overflow-auto bg-gray-100 p-4">
-        <router-outlet />
-      </main>
-    </div>
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gray-900 text-white p-4 hidden md:block">
+    <nav>
+      <ul>
+        <li *ngFor="let item of menuItems" class="mb-2">
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="bg-gray-800"
+            class="flex items-center py-2 px-3 rounded hover:bg-gray-800 transition"
+          >
+            <i class="icon-{{item.icon}} mr-2"></i>
+            <span>{{ item.label }}</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Contenido principal -->
+  <div class="flex-1 flex flex-col">
+    <!-- Header -->
+    <header class="h-16 bg-white border-b px-6 flex items-center justify-between shadow-sm">
+      <h1 class="text-xl font-bold">FollowHub</h1>
+      <button (click)="nav.logout()" class="text-red-500 hover:text-red-700">Cerrar sesión</button>
+    </header>
+
+    <!-- Página -->
+    <main class="flex-1 overflow-auto bg-gray-100 p-4">
+      <router-outlet />
+    </main>
   </div>
-  
+</div>

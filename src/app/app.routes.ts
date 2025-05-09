@@ -22,6 +22,11 @@ export const routes: Routes = [
         path: 'boards',
         loadChildren: () =>
           import('./features/boards/boards.routes').then(m => m.routes)
+      },
+      {
+        path: 'notifications',
+        loadChildren: () =>
+          import('./features/notifications/notifications.routes').then(m => m.routes)
       }
     ]
   },
