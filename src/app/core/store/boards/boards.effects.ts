@@ -74,7 +74,7 @@ export class BoardsEffects {
             return of(BoardsActions.deleteBoardFailure({ error }));
           })
         )
-      )
+      ) 
     )
   );
 }
