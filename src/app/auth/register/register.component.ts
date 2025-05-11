@@ -1,12 +1,10 @@
-import { Component, inject }     from '@angular/core';
-import { Router, RouterModule }   from '@angular/router';
-import { ReactiveFormsModule,
-         FormBuilder,
-         Validators }             from '@angular/forms';
-import { CommonModule }            from '@angular/common';
-import { tap }                     from 'rxjs/operators';
-import { HotToastService }         from '@ngxpert/hot-toast';
-import { AuthService }             from '../../core/services/auth.service';
+import { Component, inject }                           from '@angular/core';
+import { CommonModule }                                from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { RouterModule }                                from '@angular/router';
+import { Store }                                       from '@ngrx/store';
+import { authFeature }                                 from '../../core/store/auth/auth.feature';
+import { register }                                    from '../../core/store/auth/auth.actions';
 
 @Component({
   selector: 'app-register',
@@ -16,36 +14,20 @@ import { AuthService }             from '../../core/services/auth.service';
   styleUrls: ['./register.component.scss']
 })
 export class RegisterComponent {
-  private fb          = inject(FormBuilder);
-  private authService = inject(AuthService);
-  private toast       = inject(HotToastService);
-  private router      = inject(Router);
+  private fb    = inject(FormBuilder);
+  private store = inject(Store);
 
   public registerForm = this.fb.group({
     email:    ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
-  public loading = false;
+
+  public loading$ = this.store.select(authFeature.selectLoading);
+  public error$   = this.store.select(authFeature.selectError);
 
   public onSubmit(): void {
     if (this.registerForm.invalid) return;
-    this.loading = true;
     const { email, password } = this.registerForm.value;
-    this.authService.registerApi(email!, password!)
-      .pipe(
-        tap(() => this.loading = false),
-        this.toast.observe({
-          loading: 'Registrando...',
-          success: 'Registrado correctamente',
-          error: 'Error al registrar'
-        })
-      )
-      .subscribe({
-        next: ({ token, roles }) => {
-          this.authService.login(token, roles);
-          this.router.navigate(['/dashboard']);
-        },
-        error: () => (this.loading = false)
-      });
+    this.store.dispatch(register({ email: email!, password: password! }));
   }
 }

@@ -1,16 +1,30 @@
-import { inject } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { inject }                                      from '@angular/core';
+import {
+  CanActivateFn,
+  Router,
+  UrlTree,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot
+} from '@angular/router';
+import { Store }                                       from '@ngrx/store';
+import { authFeature }                                 from '../store/auth/auth.feature';
+import { map, take }                                   from 'rxjs/operators';
+import { Observable }                                  from 'rxjs';
 
-export const roleGuard: CanActivateFn = () => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-  const route = inject(ActivatedRouteSnapshot);
-  const allowed = (route.data['roles'] ?? []) as string[];
+export const roleGuard: CanActivateFn = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot
+): boolean | UrlTree | Observable<boolean | UrlTree> => {
+  const allowedRoles = (route.data['roles'] as string[]) ?? [];
+  const store        = inject(Store);
+  const router       = inject(Router);
 
-  if (allowed.some((role) => auth.hasRole(role))) {
-    return true;
-  }
-
-  return router.parseUrl('/forbidden');
+  return store.select(authFeature.selectRoles).pipe(
+    take(1),
+    map(userRoles =>
+      allowedRoles.some(r => userRoles.includes(r))
+        ? true
+        : router.createUrlTree(['/forbidden'])
+    )
+  );
 };

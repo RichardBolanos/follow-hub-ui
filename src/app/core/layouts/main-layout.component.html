@@ -1,9 +1,21 @@
+<!-- src/app/shared/layouts/main-layout.component.html -->
 <div class="flex h-screen">
   <!-- Sidebar -->
   <aside class="w-64 bg-gray-900 text-white p-4 hidden md:block">
     <nav>
-      <a routerLink="/dashboard" class="block py-2 hover:bg-gray-800 rounded px-3">Dashboard</a>
-      <a routerLink="/projects"  class="block py-2 hover:bg-gray-800 rounded px-3">Proyectos</a>
+      <ul>
+        <li *ngFor="let item of menuItems">
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="font-bold bg-gray-800"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="block py-2 hover:bg-gray-800 rounded px-3 flex items-center transition"
+          >
+            <i *ngIf="item.icon" [ngClass]="item.icon" class="mr-2"></i>
+            {{ item.label }}
+          </a>
+        </li>
+      </ul>
     </nav>
   </aside>
 
@@ -11,11 +23,19 @@
   <div class="flex-1 flex flex-col">
     <header class="h-16 bg-white border-b px-6 flex items-center justify-between shadow-sm">
       <h1 class="text-xl font-bold">FollowHub</h1>
-      <button (click)="auth.logout(); router.navigate(['/login'])" class="text-red-500">Logout</button>
+      <button
+        (click)="auth.logout(); router.navigate(['/login'])"
+        class="text-red-500 hover:text-red-700 transition"
+      >
+        Logout
+      </button>
     </header>
 
-    <main class="flex-1 overflow-auto bg-gray-100 p-4">
-      <router-outlet></router-outlet>
+    <main
+      class="flex-1 overflow-auto bg-gray-100 p-4"
+      [@routeAnimations]="routerOutlet?.activatedRouteData?.['animation']"
+    >
+      <router-outlet #routerOutlet="outlet"></router-outlet>
     </main>
   </div>
 </div>

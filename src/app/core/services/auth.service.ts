@@ -1,27 +1,29 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient }                      from '@angular/common/http';
 import { isPlatformBrowser }               from '@angular/common';
+import { Observable }                      from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private http       = inject(HttpClient);
-  private platformId = inject(PLATFORM_ID);
+  private readonly http       = inject(HttpClient);
+  private readonly platformId = inject(PLATFORM_ID);
 
-  loginApi(email: string, password: string) {
+  loginApi(email: string, password: string): Observable<{ token: string; roles: string[] }> {
     return this.http.post<{ token: string; roles: string[] }>(
       '/api/Auth/login',
       { email, password }
     );
   }
 
-  registerApi(email: string, password: string) {
-    return this.http.post<{ token: string; roles: string[] }>(
+  // Ahora registerApi devuelve void porque el endpoint /api/Auth/register no retorna body :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+  registerApi(email: string, password: string): Observable<void> {
+    return this.http.post<void>(
       '/api/Auth/register',
       { email, password }
     );
   }
 
-  login(token: string, roles: string[]) {
+  login(token: string, roles: string[]): void {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('token', token);
       localStorage.setItem('roles', JSON.stringify(roles));

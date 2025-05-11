@@ -1,6 +1,6 @@
-import { Component }        from '@angular/core';
-import { RouterOutlet }     from '@angular/router';
-import { routeAnimations }  from './core/animations/route-animations';
+import { Component }       from '@angular/core';
+import { RouterOutlet }    from '@angular/router';
+import { routeAnimations } from './core/animations/route-animations';
 
 @Component({
   selector: 'app-root',
@@ -10,4 +10,6 @@ import { routeAnimations }  from './core/animations/route-animations';
   styleUrls: ['./app.component.scss'],
   animations: [routeAnimations]
 })
-export class AppComponent {}
+export class AppComponent {
+
+}

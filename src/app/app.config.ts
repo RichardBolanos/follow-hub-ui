@@ -1,66 +1,88 @@
-// src/app/app.config.ts
-
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideRouter }                         from '@angular/router';
+import { provideAnimations }                     from '@angular/platform-browser/animations';
+import {
+  provideHttpClient,
+  withFetch,
+  withInterceptorsFromDi
+} from '@angular/common/http';
 
-import { StoreModule, MetaReducer, ActionReducer, Action } from '@ngrx/store';
-import { EffectsModule } from '@ngrx/effects';
-import { StoreDevtoolsModule } from '@ngrx/store-devtools';
-import { StoreRouterConnectingModule, routerReducer } from '@ngrx/router-store';
+import { provideHotToastConfig }                 from '@ngxpert/hot-toast';
 
-import { localStorageSync } from 'ngrx-store-localstorage';
+import { StoreModule }                           from '@ngrx/store';
+import { EffectsModule }                         from '@ngrx/effects';
+import { StoreDevtoolsModule }                   from '@ngrx/store-devtools';
+import {
+  StoreRouterConnectingModule,
+  routerReducer
+} from '@ngrx/router-store';
 
-import { routes } from './app.routes';
-import { authFeature } from './core/store/auth/auth.feature';
-import { AuthEffects } from './core/store/auth/auth.effects';
+import { HTTP_INTERCEPTORS }                     from '@angular/common/http';
+
 import { environment } from '../environments/environment';
-import { provideHotToastConfig } from '@ngxpert/hot-toast';
+import { routes }      from './app.routes';
 
-/**
- * Sólo sincroniza el slice 'auth' con localStorage
- * cuando se ejecuta en navegador. Durante SSR usa el reducer sin cambios.
- */
-export function localStorageSyncReducer(
-  reducer: ActionReducer<any, Action>
-): ActionReducer<any, Action> {
-  return typeof window !== 'undefined'
-    ? localStorageSync({ keys: ['auth'], rehydrate: true })(reducer)
-    : reducer;
-}
+// Auth
+import { authReducer }   from './core/store/auth/auth.feature';
+import { AuthEffects }   from './core/store/auth/auth.effects';
 
-export const metaReducers: MetaReducer<any>[] = [
-  localStorageSyncReducer
-];
+// Projects
+import { projectsReducer }  from './core/store/projects/projects.feature';
+import { ProjectsEffects }  from './core/store/projects/projects.effects';
+
+// Boards
+import { boardsReducer }    from './core/store/boards/boards.feature';
+import { BoardsEffects }    from './core/store/boards/boards.effects';
+
+// Meta‐reducers para localStorage
+import { metaReducers }     from './core/store/meta-reducers';
+
+// Interceptor
+import { AuthInterceptor }  from './core/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    // Router y animaciones
     provideRouter(routes),
     provideAnimations(),
-    provideHttpClient(withFetch()),
 
+    // HTTP Client con Fetch + DI interceptors
+    provideHttpClient(
+      withFetch(),
+      withInterceptorsFromDi()
+    ),
+
+    // Hot Toast standalone
+    provideHotToastConfig(),
+
+    // NgRx Store + Effects + Router + DevTools
     importProvidersFrom(
-      // Configuración del store raíz con router y feature 'auth'
       StoreModule.forRoot(
         {
-          router: routerReducer,
-          auth: authFeature.reducer
+          auth:     authReducer,
+          projects: projectsReducer,
+          boards:   boardsReducer,
+          router:   routerReducer
         },
         { metaReducers }
       ),
-
-      // Efectos globales
-      EffectsModule.forRoot([AuthEffects]),
-
-      // Sincroniza el Router con el store
+      EffectsModule.forRoot([
+        AuthEffects,
+        ProjectsEffects,
+        BoardsEffects
+      ]),
       StoreRouterConnectingModule.forRoot(),
-
-      // DevTools de Redux (solo en desarrollo)
       StoreDevtoolsModule.instrument({
         maxAge: 25,
         logOnly: environment.production
       })
-    ), provideHotToastConfig()
+    ),
+
+    // Registramos el interceptor
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
   ]
 };
